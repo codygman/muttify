@@ -2,11 +2,13 @@
 from optparse import OptionParser
 from BeautifulSoup import BeautifulSoup, SoupStrainer, Tag
 from urlparse import urlparse
+import googl
 
 parser = OptionParser()
 parser.add_option("-i", "--html", dest="input_html", help="read html data")
 parser.add_option("-f", "--file", dest="input_file", help="read html data from file")
 (options, args) = parser.parse_args()
+API_KEY = 'AIzaSyDwOb1Tc43qFusyORaw-a1EtFl3cunIrtM' 
 
 def validate_link(link):
     try:
@@ -17,14 +19,36 @@ def validate_link(link):
         pass
     return None
 
+def shorten_link(soup, link):
+    api = googl.Googl(API_KEY)
+    googl_link = api.shorten(link.get('href'))
+    new_link = Tag(soup, 'a')
+    new_link['href'] = googl_link.get('id', None)
+    if new_link.get('href', None):
+        new_link.setString(link.text)
+        return new_link
+    else:
+        return None
 
 def make_links_readable(html):
+    """
+    Goes through links making them readable
+    If they are too long, they are turned into goo.gl links
+    timing stats:
+    before multiprocess = 0m18.063s
+    """
     soup = BeautifulSoup(html)
     for link in soup.findAll('a'):#links:
-        print link.text
+        oldlink = link
+        if link and len(link.get('href', '')) > 90:
+            #make into goo.gl link
+            short_link = shorten_link(soup, link)
+            if short_link != None:
+                link = short_link
+
         if validate_link(link) and link.get('href', None):
             if not link.text:
-                link.replaceWith(link.get('href'))
+                oldlink.replaceWith(link.get('href', "No href link to replace with"))
             else:
                 div = Tag(soup, 'div')
                 div.setString(link.text)
@@ -33,7 +57,7 @@ def make_links_readable(html):
                 new_link.setString("(%s)" % (link.get('href')) )
                 div.append(br)
                 div.append(new_link)
-                link.replaceWith(div)
+                oldlink.replaceWith(div)
             print
 
     return soup
@@ -44,7 +68,6 @@ if options.input_html != None:
 
 if options.input_file != None:
     content = None
-    print content
     with open(options.input_file, 'r') as f:
         content = f.read()
     new_html = make_links_readable(content)
