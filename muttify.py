@@ -7,6 +7,7 @@ import googl
 parser = OptionParser()
 parser.add_option("-i", "--html", dest="input_html", help="read html data")
 parser.add_option("-f", "--file", dest="input_file", help="read html data from file")
+parser.add_option("-s", "--use-short-links", dest="use_short_links", default=False, help="Do you want to use short links?")
 (options, args) = parser.parse_args()
 API_KEY = 'AIzaSyDwOb1Tc43qFusyORaw-a1EtFl3cunIrtM' 
 
@@ -40,7 +41,7 @@ def make_links_readable(html):
     soup = BeautifulSoup(html)
     for link in soup.findAll('a'):#links:
         oldlink = link
-        if link and len(link.get('href', '')) > 90:
+        if link and len(link.get('href', '')) > 90 and options.use_short_links:
             #make into goo.gl link
             short_link = shorten_link(soup, link)
             if short_link != None:
