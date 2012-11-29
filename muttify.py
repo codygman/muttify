@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from optparse import OptionParser
+import ConfigParser
 from BeautifulSoup import BeautifulSoup, SoupStrainer, Tag
 from urlparse import urlparse
 import googl
@@ -9,7 +10,10 @@ parser.add_option("-i", "--html", dest="input_html", help="read html data")
 parser.add_option("-f", "--file", dest="input_file", help="read html data from file")
 parser.add_option("-s", "--use-short-links", dest="use_short_links", default=False, help="Do you want to use short links?")
 (options, args) = parser.parse_args()
-API_KEY = 'AIzaSyDwOb1Tc43qFusyORaw-a1EtFl3cunIrtM' 
+
+config = ConfigParser.SafeConfigParser()
+config.read('config.cfg')
+API_KEY = config.get('googl api', 'api_key') 
 
 def validate_link(link):
     try:
